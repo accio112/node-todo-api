@@ -4,8 +4,8 @@ var bodyParser = require('body-parser')
 var {mongoose}= require('./db/mongoose')
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
-var {authenticate} = require('./middleware/authenticate') 
-const {ObjectId}= require('mongodb')
+var {authenticate} = require('./middleware/authenticate');
+const {ObjectId}= require('mongodb');
 
 var app = express();
 const port = process.env.PORT || 3000
@@ -109,6 +109,17 @@ app.get('/users/me', authenticate,  (req,res)=>{
 
 });
 
+app.post('/users/login', (req,res)=>{
+	var body = _.pick(req.body, ['email', 'password']);
+
+	User.findByCredentials(body.email, body.password).then((user)=>{
+		user.generateAuthToken().then((token)=>{
+			res.header('x-auth', token).send(user);
+		});
+	}).catch((e)=>{
+		res.status(400).send();
+	});
+})
 
 app.listen(port, ()=>{
 	console.log(`started on port ${port}`);
